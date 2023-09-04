@@ -30,17 +30,19 @@ func (hs *HTTPServer) GetValue(c echo.Context) error {
 
 func (hs *HTTPServer) PutValue(c echo.Context) error {
 	key := c.Param("key")
-	value, err := io.ReadAll(c.Request().Body)
+	v, err := io.ReadAll(c.Request().Body)
+	value := string(v)
 	defer c.Request().Body.Close()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	err = hs.s.Put(key, string(value))
+	err = hs.s.Put(key, value)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+	hs.l.WritePut(key, value)
 
-	return c.String(http.StatusOK, string(value))
+	return c.String(http.StatusOK, value)
 }
 
 func (hs *HTTPServer) DeleteValue(c echo.Context) error {
@@ -49,6 +51,7 @@ func (hs *HTTPServer) DeleteValue(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+	hs.l.WriteDelete(key)
 
 	return c.String(http.StatusOK, key)
 }

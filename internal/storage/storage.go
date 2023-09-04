@@ -31,8 +31,8 @@ func (m *MemStorage) Get(key string) (string, error) {
 
 func (m *MemStorage) Put(key, value string) error {
 	m.Lock()
-	m.m[key] = value
 	defer m.Unlock()
+	m.m[key] = value
 
 	return nil
 }

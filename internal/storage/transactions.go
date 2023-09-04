@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+var saveFormat = "%d\t%d\t%s\t%s"
+
 type TransactionLogger interface {
 	WriteDelete(key string)
 	WritePut(key, value string)
@@ -68,7 +70,7 @@ func (l *FileTransactionLogger) Run() {
 			l.lastID++
 			_, err := fmt.Fprintf(
 				l.file,
-				"%d\t%d\t%s\t%s\n",
+				saveFormat+"\n",
 				l.lastID, e.EventType, e.Key, e.Value,
 			)
 			if err != nil {
@@ -91,7 +93,8 @@ func (l *FileTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
 
 		for scanner.Scan() {
 			line := scanner.Text()
-			if _, err := fmt.Sscanf(line, "%d\t%d\t%s\t%s",
+			fmt.Println(line)
+			if _, err := fmt.Sscanf(line, saveFormat,
 				&e.ID, &e.EventType, &e.Key, &e.Value); err != nil {
 				outError <- fmt.Errorf("input parse error: %w", err)
 				return
@@ -111,6 +114,29 @@ func (l *FileTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
 	}()
 
 	return outEvent, outError
+}
+
+func RestoreTransactions(s Storage, l TransactionLogger) error {
+	var err error
+
+	events, errors := l.ReadEvents()
+	e, ok := Event{}, true
+	for ok && err == nil {
+		select {
+		case err, ok = <-errors:
+		case e, ok = <-events:
+			switch e.EventType {
+			case EventDelete:
+				err = s.Delete(e.Key)
+			case EventPut:
+				err = s.Put(e.Key, e.Value)
+			}
+		}
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewFileTransactionLogger(filename string) (TransactionLogger, error) {

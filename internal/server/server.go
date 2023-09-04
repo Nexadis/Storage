@@ -13,15 +13,26 @@ type HTTPServer struct {
 	*echo.Echo
 	c *config.Config
 	s storage.Storage
+	l storage.TransactionLogger
 }
 
 func New(c *config.Config) *HTTPServer {
+	l, err := storage.NewFileTransactionLogger(c.FileSave)
+	if err != nil {
+		log.Fatal(err)
+	}
+	l.Run()
 	s := storage.New(100)
+	err = storage.RestoreTransactions(s, l)
+	if err != nil {
+		log.Fatal(err)
+	}
 	e := echo.New()
 	hs := &HTTPServer{
 		e,
 		c,
 		s,
+		l,
 	}
 	return hs
 }
