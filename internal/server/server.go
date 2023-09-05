@@ -7,6 +7,7 @@ import (
 	"github.com/Nexadis/Storage/internal/config"
 	"github.com/Nexadis/Storage/internal/storage"
 	"github.com/Nexadis/Storage/internal/storage/mem"
+	"github.com/Nexadis/Storage/internal/storage/pg"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,7 +19,15 @@ type HTTPServer struct {
 }
 
 func New(c *config.Config) *HTTPServer {
-	l, err := mem.NewFileTransactionLogger(c.FileSave)
+	var l storage.TransactionLogger
+	var err error
+	if c.DBURI == "" {
+		l, err = mem.NewFileTransactionLogger(c.FileSave)
+		log.Print("Use in file transactions")
+	} else {
+		l, err = pg.NewPostgreTransactionLogger(c.DBURI)
+		log.Print("Use db transactions")
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
