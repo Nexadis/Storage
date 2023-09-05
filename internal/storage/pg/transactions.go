@@ -71,6 +71,7 @@ func (p *PostgreTransactionLogger) ReadEvents() (<-chan storage.Event, <-chan er
 				errors <- err
 				return
 			}
+			log.Printf("Read Transaction %v", e)
 			events <- e
 		}
 
@@ -90,7 +91,13 @@ func (p *PostgreTransactionLogger) Run() {
 
 	errors := make(chan error, 1)
 	p.errors = errors
-	q, err := p.db.Prepare("INSERT INTO TRANSACTIONS (\"TYPE\",\"KEY\",\"VALUE\") VALUES($1,$2,$3)")
+
+	go func() {
+		for err := range errors {
+			log.Printf("Logger err: %v", err)
+		}
+	}()
+	q, err := p.db.Prepare("INSERT INTO TRANSACTIONS (\"type\",\"key\",\"value\") VALUES($1,$2,$3)")
 	if err != nil {
 		errors <- err
 		return
@@ -98,6 +105,7 @@ func (p *PostgreTransactionLogger) Run() {
 	go func() {
 		for e := range events {
 			e := e
+			log.Printf("Write Transaction %v", e)
 			_, err := q.Exec(&e.EventType, &e.Key, &e.Value)
 			if err != nil {
 				errors <- err
@@ -121,7 +129,7 @@ func NewPostgreTransactionLogger(conn string) (storage.TransactionLogger, error)
 	}
 	_, err = pl.db.Exec(TransactionsScheme)
 	if err != nil {
-		log.Printf("Error while scheme creating:", err)
+		log.Printf("Error while scheme creating:%v", err)
 	}
 	return pl, nil
 }

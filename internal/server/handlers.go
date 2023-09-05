@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/Nexadis/Storage/internal/storage"
@@ -17,6 +18,7 @@ func (hs *HTTPServer) MountHandlers() {
 
 func (hs *HTTPServer) GetValue(c echo.Context) error {
 	key := c.Param("key")
+	log.Printf("Got %s with k=%s", c.Request().Method, key)
 	val, err := hs.s.Get(key)
 	if err != nil {
 		if errors.Is(err, storage.ErrorNoSuchKey) {
@@ -36,6 +38,7 @@ func (hs *HTTPServer) PutValue(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+	log.Printf("Got %s with k=%s v=%s", c.Request().Method, key, value)
 	err = hs.s.Put(key, value)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -47,6 +50,7 @@ func (hs *HTTPServer) PutValue(c echo.Context) error {
 
 func (hs *HTTPServer) DeleteValue(c echo.Context) error {
 	key := c.Param("key")
+	log.Printf("Got %s with k=%s", c.Request().Method, key)
 	err := hs.s.Delete(key)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
