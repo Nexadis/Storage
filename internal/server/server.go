@@ -6,6 +6,7 @@ import (
 
 	"github.com/Nexadis/Storage/internal/config"
 	"github.com/Nexadis/Storage/internal/storage"
+	"github.com/Nexadis/Storage/internal/storage/mem"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,12 +18,12 @@ type HTTPServer struct {
 }
 
 func New(c *config.Config) *HTTPServer {
-	l, err := storage.NewFileTransactionLogger(c.FileSave)
+	l, err := mem.NewFileTransactionLogger(c.FileSave)
 	if err != nil {
 		log.Fatal(err)
 	}
 	l.Run()
-	s := storage.New(100)
+	s := mem.New(100)
 	err = storage.RestoreTransactions(s, l)
 	if err != nil {
 		log.Fatal(err)
