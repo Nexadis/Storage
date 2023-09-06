@@ -4,7 +4,7 @@ COPY . /src
 
 WORKDIR /src
 RUN go test -v ./...
-RUN CGO_ENABLED=0 GOOS=linux go build -o kv-store
+RUN CGO_ENABLED=0 GOOS=linux go build -o ../kv-store
 
 FROM scratch
 
