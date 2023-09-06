@@ -97,7 +97,12 @@ func (p *PostgreTransactionLogger) Run() {
 			log.Printf("Logger err: %v", err)
 		}
 	}()
-	q, err := p.db.Prepare("INSERT INTO TRANSACTIONS (\"type\",\"key\",\"value\") VALUES($1,$2,$3)")
+	insQ, err := p.db.Prepare("INSERT INTO TRANSACTIONS (\"type\",\"key\",\"value\") VALUES($1,$2,$3)")
+	if err != nil {
+		errors <- err
+		return
+	}
+	delQ, err := p.db.Prepare("DELETE FROM TRANSACTIONS WHERE \"key\"=$1")
 	if err != nil {
 		errors <- err
 		return
@@ -105,11 +110,21 @@ func (p *PostgreTransactionLogger) Run() {
 	go func() {
 		for e := range events {
 			e := e
-			log.Printf("Write Transaction %v", e)
-			_, err := q.Exec(&e.EventType, &e.Key, &e.Value)
-			if err != nil {
-				errors <- err
-				return
+			switch {
+			case e.EventType == storage.EventPut:
+				log.Printf("Write Transaction %v", e)
+				_, err := insQ.Exec(&e.EventType, &e.Key, &e.Value)
+				if err != nil {
+					errors <- err
+					return
+				}
+			case e.EventType == storage.EventDelete:
+				log.Printf("Delete Transaction %v", e)
+				_, err := delQ.Exec(&e.Key)
+				if err != nil {
+					errors <- err
+					return
+				}
 			}
 		}
 	}()
