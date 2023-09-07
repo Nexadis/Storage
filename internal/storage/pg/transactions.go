@@ -108,6 +108,7 @@ func (p *PostgreTransactionLogger) Run() {
 		return
 	}
 	go func() {
+		defer close(errors)
 		for e := range events {
 			e := e
 			switch {

@@ -45,7 +45,7 @@ func (hs *HTTPServer) PutValue(c echo.Context) error {
 	}
 	hs.l.WritePut(key, value)
 
-	return c.String(http.StatusOK, value)
+	return c.String(http.StatusCreated, value)
 }
 
 func (hs *HTTPServer) DeleteValue(c echo.Context) error {
