@@ -11,6 +11,7 @@ import (
 
 var TransactionsScheme = `CREATE TABLE TRANSACTIONS(
 ID SERIAL PRIMARY KEY,
+USERNAME VARCHAR(256),
 TYPE INT NOT NULL,
 KEY VARCHAR(1024) NOT NULL,
 VALUE VARCHAR(1024) NOT NULL
@@ -23,16 +24,18 @@ type PostgreTransactionLogger struct {
 	db     *sql.DB
 }
 
-func (p *PostgreTransactionLogger) WritePut(key, value string) {
+func (p *PostgreTransactionLogger) WritePut(user, key, value string) {
 	p.events <- storage.Event{
+		User:      user,
 		EventType: storage.EventPut,
 		Key:       key,
 		Value:     value,
 	}
 }
 
-func (p *PostgreTransactionLogger) WriteDelete(key string) {
+func (p *PostgreTransactionLogger) WriteDelete(user, key string) {
 	p.events <- storage.Event{
+		User:      user,
 		EventType: storage.EventDelete,
 		Key:       key,
 	}
@@ -66,7 +69,7 @@ func (p *PostgreTransactionLogger) ReadEvents() (<-chan storage.Event, <-chan er
 		defer rows.Close()
 
 		for rows.Next() {
-			err := rows.Scan(&e.ID, &e.EventType, &e.Key, &e.Value)
+			err := rows.Scan(&e.ID, &e.User, &e.EventType, &e.Key, &e.Value)
 			if err != nil {
 				errors <- err
 				return
@@ -97,12 +100,12 @@ func (p *PostgreTransactionLogger) Run() {
 			log.Printf("Logger err: %v", err)
 		}
 	}()
-	insQ, err := p.db.Prepare("INSERT INTO TRANSACTIONS (\"type\",\"key\",\"value\") VALUES($1,$2,$3)")
+	insQ, err := p.db.Prepare("INSERT INTO TRANSACTIONS (\"username\",\"type\",\"key\",\"value\") VALUES($1,$2,$3,$4)")
 	if err != nil {
 		errors <- err
 		return
 	}
-	delQ, err := p.db.Prepare("DELETE FROM TRANSACTIONS WHERE \"key\"=$1")
+	delQ, err := p.db.Prepare("DELETE FROM TRANSACTIONS WHERE \"key\"=$1 AND \"username\"=$2")
 	if err != nil {
 		errors <- err
 		return
@@ -114,14 +117,14 @@ func (p *PostgreTransactionLogger) Run() {
 			switch {
 			case e.EventType == storage.EventPut:
 				log.Printf("Write Transaction %v", e)
-				_, err := insQ.Exec(&e.EventType, &e.Key, &e.Value)
+				_, err := insQ.Exec(&e.User, &e.EventType, &e.Key, &e.Value)
 				if err != nil {
 					errors <- err
 					return
 				}
 			case e.EventType == storage.EventDelete:
 				log.Printf("Delete Transaction %v", e)
-				_, err := delQ.Exec(&e.Key)
+				_, err := delQ.Exec(&e.Key, &e.User)
 				if err != nil {
 					errors <- err
 					return

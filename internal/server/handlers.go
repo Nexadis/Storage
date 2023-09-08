@@ -16,6 +16,8 @@ func (hs *HTTPServer) MountHandlers() {
 	hs.DELETE(APIKV, hs.DeleteValue)
 }
 
+const defaultUser = "default"
+
 func (hs *HTTPServer) GetValue(c echo.Context) error {
 	key := c.Param("key")
 	log.Printf("Got %s with k=%s", c.Request().Method, key)
@@ -43,7 +45,7 @@ func (hs *HTTPServer) PutValue(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	hs.l.WritePut(key, value)
+	hs.l.WritePut(defaultUser, key, value)
 
 	return c.String(http.StatusCreated, value)
 }
@@ -55,7 +57,7 @@ func (hs *HTTPServer) DeleteValue(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	hs.l.WriteDelete(key)
+	hs.l.WriteDelete(defaultUser, key)
 
 	return c.String(http.StatusOK, key)
 }

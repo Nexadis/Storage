@@ -17,16 +17,18 @@ type FileTransactionLogger struct {
 	file   *os.File
 }
 
-func (l *FileTransactionLogger) WritePut(key, value string) {
+func (l *FileTransactionLogger) WritePut(user, key, value string) {
 	l.events <- storage.Event{
+		User:      user,
 		EventType: storage.EventPut,
 		Key:       key,
 		Value:     value,
 	}
 }
 
-func (l *FileTransactionLogger) WriteDelete(key string) {
+func (l *FileTransactionLogger) WriteDelete(user, key string) {
 	l.events <- storage.Event{
+		User:      user,
 		EventType: storage.EventDelete,
 		Key:       key,
 	}

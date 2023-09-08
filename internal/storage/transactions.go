@@ -1,8 +1,8 @@
 package storage
 
 type TransactionLogger interface {
-	WriteDelete(key string)
-	WritePut(key, value string)
+	WriteDelete(user, key string)
+	WritePut(user, key, value string)
 	Err() <-chan error
 
 	ReadEvents() (<-chan Event, <-chan error)
@@ -19,6 +19,7 @@ const (
 
 type Event struct {
 	ID        uint64
+	User      string
 	EventType EventType
 	Key       string
 	Value     string
