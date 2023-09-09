@@ -36,9 +36,9 @@ func RestoreTransactions(s Storage, l TransactionLogger) error {
 		case e, ok = <-events:
 			switch e.EventType {
 			case EventDelete:
-				err = s.Delete(e.Key)
+				err = s.Delete(e.User, e.Key)
 			case EventPut:
-				err = s.Put(e.Key, e.Value)
+				err = s.Put(e.User, e.Key, e.Value)
 			}
 		}
 	}

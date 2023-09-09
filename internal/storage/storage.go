@@ -5,7 +5,7 @@ import "errors"
 var ErrorNoSuchKey = errors.New("no such key")
 
 type Storage interface {
-	Put(key, value string) error
-	Get(key string) (string, error)
-	Delete(key string) error
+	Put(user, key, value string) error
+	Get(user, key string) (string, error)
+	Delete(user, key string) error
 }

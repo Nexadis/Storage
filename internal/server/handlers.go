@@ -16,12 +16,11 @@ func (hs *HTTPServer) MountHandlers() {
 	hs.DELETE(APIKV, hs.DeleteValue)
 }
 
-const defaultUser = "default"
-
 func (hs *HTTPServer) GetValue(c echo.Context) error {
 	key := c.Param("key")
+	user := GetUser(c.Request())
 	log.Printf("Got %s with k=%s", c.Request().Method, key)
-	val, err := hs.s.Get(key)
+	val, err := hs.s.Get(user, key)
 	if err != nil {
 		if errors.Is(err, storage.ErrorNoSuchKey) {
 			return c.String(http.StatusNotFound, err.Error())
@@ -34,6 +33,7 @@ func (hs *HTTPServer) GetValue(c echo.Context) error {
 
 func (hs *HTTPServer) PutValue(c echo.Context) error {
 	key := c.Param("key")
+	user := GetUser(c.Request())
 	v, err := io.ReadAll(c.Request().Body)
 	value := string(v)
 	defer c.Request().Body.Close()
@@ -41,23 +41,24 @@ func (hs *HTTPServer) PutValue(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	log.Printf("Got %s with k=%s v=%s", c.Request().Method, key, value)
-	err = hs.s.Put(key, value)
+	err = hs.s.Put(user, key, value)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	hs.l.WritePut(defaultUser, key, value)
+	hs.l.WritePut(user, key, value)
 
 	return c.String(http.StatusCreated, value)
 }
 
 func (hs *HTTPServer) DeleteValue(c echo.Context) error {
 	key := c.Param("key")
+	user := GetUser(c.Request())
 	log.Printf("Got %s with k=%s", c.Request().Method, key)
-	err := hs.s.Delete(key)
+	err := hs.s.Delete(user, key)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	hs.l.WriteDelete(defaultUser, key)
+	hs.l.WriteDelete(user, key)
 
 	return c.String(http.StatusOK, key)
 }
