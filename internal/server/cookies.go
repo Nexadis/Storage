@@ -12,5 +12,5 @@ func GetUser(r *http.Request) string {
 	if err != nil {
 		return defaultUser
 	}
-	return c.String()
+	return c.Value
 }
