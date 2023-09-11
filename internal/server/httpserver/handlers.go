@@ -1,4 +1,4 @@
-package server
+package httpserver
 
 import (
 	"errors"
@@ -20,7 +20,7 @@ func (hs *HTTPServer) GetValue(c echo.Context) error {
 	key := c.Param("key")
 	user := GetUser(c.Request())
 	log.Printf("Got %s with k=%s", c.Request().Method, key)
-	val, err := hs.s.Get(user, key)
+	val, err := hs.db.Get(user, key)
 	if err != nil {
 		if errors.Is(err, storage.ErrorNoSuchKey) {
 			return c.String(http.StatusNotFound, err.Error())
@@ -41,7 +41,7 @@ func (hs *HTTPServer) PutValue(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	log.Printf("Got %s with k=%s v=%s", c.Request().Method, key, value)
-	err = hs.s.Put(user, key, value)
+	err = hs.db.Put(user, key, value)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -54,7 +54,7 @@ func (hs *HTTPServer) DeleteValue(c echo.Context) error {
 	key := c.Param("key")
 	user := GetUser(c.Request())
 	log.Printf("Got %s with k=%s", c.Request().Method, key)
-	err := hs.s.Delete(user, key)
+	err := hs.db.Delete(user, key)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
