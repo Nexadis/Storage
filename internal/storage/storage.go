@@ -1,6 +1,10 @@
 package storage
 
-import "errors"
+import (
+	"errors"
+)
+
+const DefaultUser = "default"
 
 var ErrorNoSuchKey = errors.New("no such key")
 
