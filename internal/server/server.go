@@ -1,6 +1,9 @@
 package server
 
 import (
+	"log"
+	"sync"
+
 	"github.com/Nexadis/Storage/internal/config"
 	"github.com/Nexadis/Storage/internal/server/grpcserver"
 	"github.com/Nexadis/Storage/internal/server/httpserver"
@@ -24,5 +27,23 @@ func New(c *config.Config) *Server {
 }
 
 func (s *Server) Run() error {
+	var wg sync.WaitGroup
+	errs := make(chan error)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err := s.HTTPServer.Run()
+		errs <- err
+	}()
+	go func() {
+		defer wg.Done()
+		err := s.GRPCServer.Run()
+		errs <- err
+	}()
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		log.Printf("Err: %v", err)
+	}
 	return nil
 }

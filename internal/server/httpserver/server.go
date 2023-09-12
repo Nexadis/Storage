@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"log"
-	"sync"
 
 	"github.com/Nexadis/Storage/internal/config"
 	"github.com/Nexadis/Storage/internal/storage"
@@ -65,19 +64,6 @@ func NewStorage(c *config.Config, l storage.TransactionLogger) storage.Storage {
 }
 
 func (hs *HTTPServer) Run() error {
-	var wg sync.WaitGroup
-	errs := make(chan error)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		defer close(errs)
-		hs.MountHandlers()
-		err := hs.Start(hs.Config.Addr)
-		errs <- err
-	}()
-	wg.Wait()
-	for err := range errs {
-		log.Printf("Err: %v", err)
-	}
-	return nil
+	hs.MountHandlers()
+	return hs.Start(hs.Config.Addr)
 }
