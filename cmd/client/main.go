@@ -15,5 +15,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Fatal(c.DoCmd(flag.Args()))
+	err = c.DoCmd(flag.Args())
+	if err != nil {
+		log.Fatal(err)
+	}
 }

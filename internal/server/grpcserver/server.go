@@ -20,11 +20,27 @@ type Server struct {
 }
 
 func (s *Server) Get(ctx context.Context, r *pb.GetRequest) (*pb.GetResponse, error) {
-	log.Printf("Received GET key=%v", r.Key)
+	log.Printf("Received Get %s", r.Key)
 
 	value, err := s.db.Get(storage.DefaultUser, r.Key)
 
 	return &pb.GetResponse{Value: value}, err
+}
+
+func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
+	log.Printf("Received Put %s=%s", r.Key, r.Value)
+
+	err := s.db.Put(storage.DefaultUser, r.Key, r.Value)
+
+	return &pb.PutResponse{}, err
+}
+
+func (s *Server) Delete(ctx context.Context, r *pb.DeleteRequest) (*pb.DeleteResponse, error) {
+	log.Printf("Received Delete %s", r.Key)
+
+	err := s.db.Delete(storage.DefaultUser, r.Key)
+
+	return &pb.DeleteResponse{}, err
 }
 
 func New(c *config.Config) *Server {
