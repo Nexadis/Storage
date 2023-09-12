@@ -3,7 +3,7 @@ package httpserver
 import (
 	"log"
 
-	"github.com/Nexadis/Storage/internal/config"
+	"github.com/Nexadis/Storage/internal/server/config"
 	"github.com/Nexadis/Storage/internal/storage"
 	"github.com/Nexadis/Storage/internal/storage/mem"
 	"github.com/Nexadis/Storage/internal/storage/pg"

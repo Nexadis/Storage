@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/Nexadis/Storage/internal/config"
+	"github.com/Nexadis/Storage/internal/server/config"
 	"github.com/Nexadis/Storage/internal/server/httpserver"
 	"github.com/Nexadis/Storage/internal/storage"
 	pb "github.com/Nexadis/Storage/protos"

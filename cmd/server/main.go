@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/Nexadis/Storage/internal/config"
 	"github.com/Nexadis/Storage/internal/server"
+	"github.com/Nexadis/Storage/internal/server/config"
 )
 
 func main() {

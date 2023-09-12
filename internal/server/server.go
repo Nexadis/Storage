@@ -4,7 +4,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/Nexadis/Storage/internal/config"
+	"github.com/Nexadis/Storage/internal/server/config"
 	"github.com/Nexadis/Storage/internal/server/grpcserver"
 	"github.com/Nexadis/Storage/internal/server/httpserver"
 )
