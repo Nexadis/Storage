@@ -31,6 +31,7 @@ func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, er
 	log.Printf("Received Put %s=%s", r.Key, r.Value)
 
 	err := s.db.Put(storage.DefaultUser, r.Key, r.Value)
+	s.l.WritePut(storage.DefaultUser, r.Key, r.Value)
 
 	return &pb.PutResponse{}, err
 }
@@ -39,6 +40,7 @@ func (s *Server) Delete(ctx context.Context, r *pb.DeleteRequest) (*pb.DeleteRes
 	log.Printf("Received Delete %s", r.Key)
 
 	err := s.db.Delete(storage.DefaultUser, r.Key)
+	s.l.WriteDelete(storage.DefaultUser, r.Key)
 
 	return &pb.DeleteResponse{}, err
 }
