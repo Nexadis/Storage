@@ -5,12 +5,15 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/Nexadis/Storage/internal/storage"
 	"github.com/labstack/echo/v4"
 )
 
 func (hs *HTTPServer) MountHandlers() {
+	loadShedding := NewLoadShedding(2, 10*time.Second)
+	hs.Use(loadShedding)
 	hs.GET(APIKV, hs.GetValue)
 	hs.PUT(APIKV, hs.PutValue)
 	hs.DELETE(APIKV, hs.DeleteValue)
