@@ -14,6 +14,7 @@ import (
 func (hs *HTTPServer) MountHandlers() {
 	loadShedding := NewLoadShedding(2, 10*time.Second)
 	hs.Use(loadShedding)
+	hs.GET("health", healthCheck)
 	hs.GET(APIKV, hs.GetValue)
 	hs.PUT(APIKV, hs.PutValue)
 	hs.DELETE(APIKV, hs.DeleteValue)
@@ -64,4 +65,8 @@ func (hs *HTTPServer) DeleteValue(c echo.Context) error {
 	hs.l.WriteDelete(user, key)
 
 	return c.String(http.StatusOK, key)
+}
+
+func healthCheck(c echo.Context) error {
+	return c.String(http.StatusOK, "OK")
 }
