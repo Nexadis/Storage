@@ -5,9 +5,17 @@ import (
 	"log"
 	"net"
 	"net/http"
+
+	"github.com/spf13/viper"
 )
 
 var privateCIDRs []*net.IPNet
+
+type Feature string
+
+const (
+	Use_user Feature = "use_user"
+)
 
 func init() {
 	for _, cidr := range []string{
@@ -20,7 +28,7 @@ func init() {
 	}
 }
 
-func fromPrivateIP(flag string, r *http.Request) (bool, error) {
+func fromPrivateIP(flag Feature, r *http.Request) (bool, error) {
 	remoteIP, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return false, err
@@ -35,18 +43,18 @@ func fromPrivateIP(flag string, r *http.Request) (bool, error) {
 	return ip.IsPrivate(), nil
 }
 
-var enabledFunctions map[string]Enabled
+var enabledFunctions map[Feature]Enabled
 
 func init() {
-	enabledFunctions = map[string]Enabled{}
-	enabledFunctions["new-storage"] = fromPrivateIP
+	enabledFunctions = map[Feature]Enabled{}
+	enabledFunctions[Use_user] = fromPrivateIP
 }
 
-type Enabled func(flag string, r *http.Request) (bool, error)
+type Enabled func(flag Feature, r *http.Request) (bool, error)
 
-func FeatureEnabled(flag string, r *http.Request) bool {
-	if viper.IsSet(flag) {
-		return viper.GetBool(flag)
+func FeatureEnabled(flag Feature, r *http.Request) bool {
+	if viper.IsSet(string(flag)) {
+		return viper.GetBool(string(flag))
 	}
 
 	enabledFunc, exists := enabledFunctions[flag]
